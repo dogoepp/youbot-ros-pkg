@@ -8,7 +8,7 @@
 
 FIND_PATH(SOEM_INCLUDE_DIR NAMES ethercatmain.h
   PATHS
-  $ENV{YOUBOTDIR}/include/soem/src 
+  $ENV{YOUBOTDIR}/soem/src 
   $ENV{ROBOTPKG_BASE}/include/soem/src 
   ${soem_PACKAGE_PATH}/src
   ENV CPATH

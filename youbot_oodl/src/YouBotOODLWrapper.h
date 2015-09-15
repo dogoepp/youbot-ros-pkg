@@ -54,7 +54,7 @@
 #include "std_srvs/Empty.h"
 #include "diagnostic_msgs/DiagnosticStatus.h"
 #include <diagnostic_msgs/DiagnosticArray.h>
-#include <pr2_msgs/PowerBoardState.h>
+#include <cob_msgs/PowerBoardState.h>
 
 #include "trajectory_msgs/JointTrajectory.h"
 #include "sensor_msgs/JointState.h"
@@ -161,7 +161,7 @@ public:
 	 * @param armIndex Index that identifies the arm
 	 */
 	void armJointTrajectoryCancelCallback(actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle youbotArmGoal, unsigned int armIndex);
-    
+
     /**
      * @brief Callback that is executed when a position command for the gripper comes in.
      * @param youbotGripperCommand Message that contains the desired joint configuration.
@@ -176,7 +176,7 @@ public:
      * computeOODLSensorReadings needs to be executed before.
      */
     void publishOODLSensorReadings();
-    
+
     /**
     * @brief Publishes status of base and arm as diagnostic and dashboard messages continuously
     */
@@ -209,7 +209,7 @@ public:
 private:
 
     YouBotOODLWrapper(); //forbid default constructor
-    
+
 
     /// Degrees of freedom for the youBot manipulator
     static const int youBotArmDoF = 5;
@@ -262,17 +262,17 @@ private:
 	int gripperCycleCounter;
 
     //void executeActionServer(const control_msgs::FollowJointTrajectoryGoalConstPtr& goal,  int armIndex);
-    
+
     //bool trajectoryActionServerEnable;
     //double trajectoryVelocityGain;
     //double trajectoryPositionGain;
     double youBotDriverCycleFrequencyInHz;
-        
+
     /// diagnostic msgs
     ros::Time lastDiagnosticPublishTime;
 
     ros::Publisher dashboardMessagePublisher;
-    pr2_msgs::PowerBoardState platformStateMessage;
+    cob_msgs::PowerBoardState platformStateMessage;
 
     ros::Publisher diagnosticArrayPublisher;
     diagnostic_msgs::DiagnosticArray diagnosticArrayMessage;

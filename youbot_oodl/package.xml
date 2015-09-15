@@ -1,0 +1,27 @@
+<package format = "2">
+  <name>youbot_oodl</name>
+  <description>
+    In this package resides the node that allows to interact with the youbot base and (possibly attached) arms.
+  </description>
+  <version>0.0.0</version>
+
+  <author email="blumenthal@locomotec.com">Sebastian Blumenthal</author>
+  <maintainer email="dorian.goepp@inria.fr">Dorian Goepp</maintainer>
+  <license>BSD</license>
+
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>tf</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>brics_actuator</depend> <!--BRICS interface messages, version 0.1 -->
+  <!-- <depend>youbot_driver</depend> -->
+  <depend>control_msgs</depend>
+  <depend>actionlib</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>cob_msgs</depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+</package>

@@ -41,7 +41,11 @@
 #include "joint_state_observer_oodl.h"
 
 #include <youbot_trajectory_action_server/joint_trajectory_action.h>
+
 #include <sstream>
+
+// ROS includes
+#include "tf/transform_broadcaster.h"
 
 namespace youBot
 {
@@ -56,7 +60,7 @@ node(n)
 
     youBotConfiguration.hasBase = false;
     youBotConfiguration.hasArms = false;
-    areBaseMotorsSwitchedOn = false;	
+    areBaseMotorsSwitchedOn = false;
     areArmMotorsSwitchedOn = false;
 
     youBotChildFrameID = "base_link"; //holds true for both: base and arm
@@ -69,7 +73,7 @@ node(n)
     gripperCycleCounter = 0;
     diagnosticNameArms = "platform_Arms";
     diagnosticNameBase = "platform_Base";
-    dashboardMessagePublisher = n.advertise<pr2_msgs::PowerBoardState>("/dashboard/platform_state", 1);
+    dashboardMessagePublisher = n.advertise<cob_msgs::PowerBoardState>("/dashboard/platform_state", 1);
     diagnosticArrayPublisher = n.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 }
 
@@ -128,7 +132,7 @@ void YouBotOODLWrapper::initializeArm(std::string armName, std::string topic, bo
 
     try
     {
-        ROS_INFO("Configuration file path: %s", youBotConfiguration.configurationFilePath.c_str());   
+        ROS_INFO("Configuration file path: %s", youBotConfiguration.configurationFilePath.c_str());
         armConfig = new YouBotArmConfiguration();
         armIndex = static_cast<int> (youBotConfiguration.youBotArmConfigurations.size());
         armConfig->youBotArm = new youbot::YouBotManipulator(armName, youBotConfiguration.configurationFilePath);
@@ -178,7 +182,7 @@ void YouBotOODLWrapper::initializeArm(std::string armName, std::string topic, bo
             youbot::YouBotJoint &joint = armConfig->youBotArm->getArmJoint(i+1);
             youbot::JointLimitsRadian jointLimitsParam;
             youbot::InverseMovementDirection inverseDirectionParam;
-              
+
             joint.getConfigurationParameter(jointLimitsParam);
             joint.getConfigurationParameter(inverseDirectionParam);
 
@@ -192,7 +196,7 @@ void YouBotOODLWrapper::initializeArm(std::string armName, std::string topic, bo
             lowerLimitVal = lowerLimit.value();
             upperLimitVal = upperLimit.value();
 
-            if (inverseMovement) { 
+            if (inverseMovement) {
                 double temp = -upperLimitVal;
                 upperLimitVal = -lowerLimitVal;
                 lowerLimitVal = temp;
@@ -220,7 +224,7 @@ void YouBotOODLWrapper::initializeArm(std::string armName, std::string topic, bo
                 param_name << armConfig->commandTopicName << "joint_limits/" << armConfig->gripperFingerNames[i].c_str() << "_lower";
                 this->node.setParam(param_name.str(), 0.);
 
-                param_name.str("");      
+                param_name.str("");
                 param_name << armConfig->commandTopicName << "joint_limits/" << armConfig->gripperFingerNames[i].c_str() << "_upper";
                 this->node.setParam(param_name.str(), max_gripper_dist);
             }
@@ -228,7 +232,7 @@ void YouBotOODLWrapper::initializeArm(std::string armName, std::string topic, bo
     }
     catch (std::exception& e)
     {
-        if (armConfig != NULL) 
+        if (armConfig != NULL)
             delete armConfig;
         armConfig = NULL;
         std::string errorMessage = e.what();
@@ -304,7 +308,7 @@ void YouBotOODLWrapper::initializeArm(std::string armName, std::string topic, bo
 
         serviceName.str("");
         serviceName << armConfig->commandTopicName << "arm_controller/joint_trajectory_action"; // e.g. "arm_1/switchOnMotors"
-        
+
         armConfig->trajectoryActionServer = new Server(serviceName.str(),
                                                                                                   boost::bind(&YouBotOODLWrapper::executeActionServer, this, _1, armIndex),
                                                                                                   false);
@@ -616,7 +620,7 @@ void YouBotOODLWrapper::armJointTrajectoryGoalCallback(actionlib::ActionServer<c
 	}
 
   std::vector<youbot::JointTrajectory> jointTrajectories(youBotArmDoF);
-  
+
 	// convert from the ROS trajectory representation to the controller's representation
 	std::vector<std::vector< quantity<plane_angle> > > positions(youBotArmDoF);
 	std::vector<std::vector< quantity<angular_velocity> > > velocities(youBotArmDoF);
@@ -632,7 +636,7 @@ void YouBotOODLWrapper::armJointTrajectoryGoalCallback(actionlib::ActionServer<c
 			youbotArmGoal.setRejected();
 			return;
 		}
-    
+
 		for (int j = 0; j < youBotArmDoF; j++) {
       segment.positions = point.positions[j]*radian;
       segment.velocities = point.velocities[j]*radian_per_second;
@@ -645,8 +649,8 @@ void YouBotOODLWrapper::armJointTrajectoryGoalCallback(actionlib::ActionServer<c
       jointTrajectories[j].start_time = boost::posix_time::microsec_clock::local_time(); //TODO is this correct to set the trajectory start time to now
   }
 
-  
-  
+
+
 
 	// cancel the old goal
   /*
@@ -664,7 +668,7 @@ void YouBotOODLWrapper::armJointTrajectoryGoalCallback(actionlib::ActionServer<c
 	armActiveJointTrajectoryGoal = youbotArmGoal;
 	armHasActiveJointTrajectoryGoal = true;
 
-  
+
  // myTrace->startTrace();
 
 	// send the trajectory to the controller
@@ -948,7 +952,7 @@ void YouBotOODLWrapper::computeOODLSensorReadings()
              * themselves. Of course if the finger are screwed to the most inner position (i.e. the can close completely),
              * than it is correct.
              */
-            try 
+            try
             {
                 youbot::YouBotGripperBar& gripperBar1 = armConfig->youBotArm->getArmGripper().getGripperBar1();
                 youbot::YouBotGripperBar& gripperBar2 = armConfig->youBotArm->getArmGripper().getGripperBar2();
@@ -975,7 +979,7 @@ void YouBotOODLWrapper::computeOODLSensorReadings()
 /*
             if (trajectoryActionServerEnable)
             {
-                // updating joint states in trajectory action 
+                // updating joint states in trajectory action
                 armConfig->jointTrajectoryAction->jointStateCallback(armJointStateMessages[armIndex]);
             }
 */
@@ -998,7 +1002,7 @@ void YouBotOODLWrapper::computeOODLSensorReadings()
 
 void YouBotOODLWrapper::publishOODLSensorReadings()
 {
-      
+
     if (youBotConfiguration.hasBase)
     {
         youBotConfiguration.baseConfiguration.odometryBroadcaster.sendTransform(odometryTransform);
@@ -1116,7 +1120,7 @@ bool YouBotOODLWrapper::switchOnArmMotorsCallback(std_srvs::Empty::Request& requ
     YouBotArmConfiguration *armConfig = youBotConfiguration.youBotArmConfigurations[armIndex];
     ROS_ASSERT(armConfig != NULL);
     if (youBotConfiguration.hasArms && armConfig->youBotArm != 0)
-    {   
+    {
       try
         {
             std::vector<youbot::JointSensedAngle> sensedJointAngleVector;
@@ -1126,7 +1130,7 @@ bool YouBotOODLWrapper::switchOnArmMotorsCallback(std_srvs::Empty::Request& requ
             for(unsigned int i = 0; i < sensedJointAngleVector.size(); i++){
               desiredJointAngle = sensedJointAngleVector[i].angle;
               desiredJointAngleVector.push_back(desiredJointAngle);
-            }        
+            }
             armConfig->youBotArm->setJointData(desiredJointAngleVector);
         }
         catch (std::exception& e)
@@ -1262,18 +1266,18 @@ void YouBotOODLWrapper::publishArmAndBaseDiagnostics(double publish_rate_in_secs
     platformStateMessage.header.stamp = ros::Time::now();
 
     if (youBotConfiguration.hasBase && areBaseMotorsSwitchedOn)
-      platformStateMessage.circuit_state[0] = pr2_msgs::PowerBoardState::STATE_ENABLED;
+      platformStateMessage.circuit_state[0] = cob_msgs::PowerBoardState::STATE_ENABLED;
     else if (youBotConfiguration.hasBase && !areBaseMotorsSwitchedOn)
-      platformStateMessage.circuit_state[0] = pr2_msgs::PowerBoardState::STATE_STANDBY;
+      platformStateMessage.circuit_state[0] = cob_msgs::PowerBoardState::STATE_STANDBY;
     else
-      platformStateMessage.circuit_state[0] = pr2_msgs::PowerBoardState::STATE_DISABLED;
+      platformStateMessage.circuit_state[0] = cob_msgs::PowerBoardState::STATE_DISABLED;
 
     if (youBotConfiguration.hasArms && areArmMotorsSwitchedOn)
-      platformStateMessage.circuit_state[1] = pr2_msgs::PowerBoardState::STATE_ENABLED;
+      platformStateMessage.circuit_state[1] = cob_msgs::PowerBoardState::STATE_ENABLED;
     else if (youBotConfiguration.hasArms && !areArmMotorsSwitchedOn)
-      platformStateMessage.circuit_state[1] = pr2_msgs::PowerBoardState::STATE_STANDBY;
+      platformStateMessage.circuit_state[1] = cob_msgs::PowerBoardState::STATE_STANDBY;
     else
-      platformStateMessage.circuit_state[1] = pr2_msgs::PowerBoardState::STATE_DISABLED;
+      platformStateMessage.circuit_state[1] = cob_msgs::PowerBoardState::STATE_DISABLED;
 
 
     // publish established messages
