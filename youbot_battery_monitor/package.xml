@@ -1,0 +1,20 @@
+<package format="2">
+  <name>youbot_battery_monitor</name>
+  <description>
+  	raw_youbot_battery_monitor
+  </description>
+  <version>0.0.0</version>
+
+  <author email="a@b.com">Frederik Hegger, Jan Paulus</author>
+  <maintainer email="a@b.com">Frederik Hegger</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/raw_youbot_battery_monitor</url>
+
+  <depend>roscpp</depend>
+  <depend>pr2_msgs</depend>
+  <depend>diagnostic_msgs</depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+</package>
+
+
